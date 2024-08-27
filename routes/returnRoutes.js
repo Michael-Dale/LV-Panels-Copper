@@ -23,7 +23,7 @@ router.get("/", (req, res, next) => {
 // Route handler for fetching purchases based on contract number
 router.get("/transactions/:contractNumber", (req, res, next) => {
   const contractNumber = req.params.contractNumber;
-  const purchaseQuery ="  SELECT th.ID, th.ContractNumber, th.Panel, th.Description, th.Height, th.Width, th.Length AS LengthPerPiece, th.Length * th.Qty AS TotalOriginalLength, th.Qty, th.Draw, th.Return, th.DateOfTransaction, th.DrawnFrom, (th.Length * th.Qty) - COALESCE(SUM(r.Length * r.QtyReturned), 0) AS TotalCorrectedLength FROM tblTransactionHistory th LEFT JOIN tblReturns r ON th.ID = r.TransactionID WHERE th.ContractNumber = ? AND th.Draw = 1 GROUP BY th.ID, th.ContractNumber, th.Panel, th.Description, th.Height, th.Width, th.Length, th.Qty, th.Draw, th.Return, th.DateOfTransaction, th.DrawnFrom;";
+  const purchaseQuery ="  SELECT th.ID, th.ContractNumber, th.Panel, th.Description, th.Height, th.Width, th.Length AS LengthPerPiece, th.Length * th.Qty AS TotalOriginalLength, th.Qty, th.Draw, th.Return, th.DateOfTransaction, th.DrawnFrom, (th.Length * th.Qty) - COALESCE(SUM(r.Length * r.QtyReturnedStatic), 0) AS TotalCorrectedLength FROM tblTransactionHistory th LEFT JOIN tblReturns r ON th.ID = r.TransactionID WHERE th.ContractNumber = ? AND th.Draw = 1 GROUP BY th.ID, th.ContractNumber, th.Panel, th.Description, th.Height, th.Width, th.Length, th.Qty, th.Draw, th.Return, th.DateOfTransaction, th.DrawnFrom;";
 
 
 
@@ -72,7 +72,7 @@ router.post("/insertReturnTransaction", (req, res, next) => {
   const query1 =
     "INSERT INTO tblTransactionHistory (ContractNumber, Panel, Description, Height, Width, Length, Qty, Return, DateOfTransaction) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)";
   const query2 =
-    "INSERT INTO tblReturns (TransactionID,ContractNumber,Description, Height, Width, Length, QtyReturned, DateReturned) VALUES (?,?, ?, ?, ?, ?, ?, ?)";
+    "INSERT INTO tblReturns (TransactionID,ContractNumber,Description, Height, Width, Length, QtyReturned,QtyReturnedStatic, DateReturned) VALUES (?,?, ?, ?, ?, ?, ?, ?,?)";
 
   // Array to store any errors that occur during insertion
   const insertionErrors = [];
@@ -112,7 +112,7 @@ router.post("/insertReturnTransaction", (req, res, next) => {
           qty,
           currentDate,
         ];
-        const values2 = [id,returnType,description, height, width, length, qty, currentDate];
+        const values2 = [id,returnType,description, height, width, length, qty,qty,  currentDate];
 
         // Execute the SQL queries
         global.db.run(query1, values1, function (err) {
