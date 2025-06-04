@@ -30,7 +30,7 @@ The audit feature allows users to select a contract and view a detailed report o
 
 ## Collaboration
 
-This project was developed in collaboration with [Michael Dale](https://github.com/Michael-Dale). Together, we worked on the design, development, and implementation of the LV Panels Copper Tracking System. We divided responsibilities based on our strengths to ensure the project was completed efficiently and effectively.
+This project was developed in collaboration with [Jonathan Loxton](https://github.com/jonathancs50). Together, we worked on the design, development, and implementation of the LV Panels Copper Tracking System. We divided responsibilities based on our strengths to ensure the project was completed efficiently and effectively.
 
 ## License
 
