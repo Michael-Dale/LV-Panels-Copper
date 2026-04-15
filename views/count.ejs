@@ -11,14 +11,12 @@
 
     <title>Copper Count</title>
     <style>
-      /* CSS code to style Tabulator table headers */
       .tabulator .tabulator-header {
-        color: Black; /* Set text color to white */
+        color: Black;
       }
     </style>
   </head>
   <body>
-    <!-- Navigation bar -->
     <div class="main-nav">
       <ul class="main-nav-list">
         <li><a class="main-nav-link" href="/purchase">Purchase</a></li>
@@ -30,25 +28,13 @@
         <button id="print-table">Print Table</button>
       </ul>
     </div>
+
     <h1>Copper Count</h1>
-    <table id="purchaseTable" style="display: none">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Contract Number</th>
-          <th>Panel Number</th>
-          <th>Description</th>
-          <th>Height</th>
-          <th>Width</th>
-          <th>Counted Length</th>
-          <th>Notes</th>
-          <!-- Add additional columns here if needed -->
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Dynamic rows will be added here -->
-      </tbody>
-    </table>
+
+    <div class="height">
+      <div id="purchaseTable" style="display: none"></div>
+    </div>
+
     <section class="section-cta">
       <div class="container">
         <div class="cta top-bot-padding">
@@ -101,10 +87,12 @@
                 <label for="width">Width:</label>
                 <input id="width" name="width" required />
               </div>
+
               <div class="control">
                 <label for="length">Length:</label>
                 <input id="length" name="length" required />
               </div>
+
               <div class="control spanning-div">
                 <label for="notes">Notes:</label>
                 <input id="notes" name="notes" required />
@@ -115,174 +103,40 @@
                 <button type="submit" class="button btn--form">Submit</button>
               </p>
             </form>
+
             <div class="cta-form">
               <div class="control">
                 <label for="idDropdownUpdate" class="deleteLabel">Row ID Selected:</label>
-              <select id="idDropdownUpdate" name="idDropdownUpdate">
-                <option disabled selected>Select a Row to Edit its Notes</option>
-                <% purchases.forEach(p => { %>
-                <option value="<%= p.ID %>"><%= p.ID %></option>
-                <% }); %>
-              </select>
+                <select id="idDropdownUpdate" name="idDropdownUpdate">
+                  <option disabled selected>Select a Row to Edit its Notes</option>
+                  <% purchases.forEach(p => { %>
+                  <option value="<%= p.ID %>"><%= p.ID %></option>
+                  <% }); %>
+                </select>
               </div>
+
               <div class="control spanning-div">
                 <label for="updateNotes">Update Notes:</label>
                 <input id="updateNotes" name="updateNotes" required />
               </div>
-              
-            <button class="button btn--form control right" id="updateBtn">Update</button>
-              
+
+              <button class="button btn--form control right" id="updateBtn">Update</button>
             </div>
           </div>
         </div>
       </div>
     </section>
+
     <script src="node_modules\tabulator-tables\dist/js/tabulator.min.js"></script>
     <script>
-      var table;
-      document.getElementById("print-table").addEventListener("click", function(){
-   table.print(false, true);
-});
-      function handlePopulate() {
-        event.preventDefault();
+      let table = null;
 
-        const selectedContractNumber = document.getElementById(
-          "contractNumberDropDown"
-        ).value;
-
-        fetch(`/count/purchases/${selectedContractNumber}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log(data);
-            populateTable(data);
-          })
-          .catch((error) => {
-            console.error("Error fetching purchases:", error);
-          });
-      }
-
-      // Function to fetch description details based on selected description
-      function fetchDetails() {
-        const selectedDescription = document.getElementById(
-          "descriptionDropdown"
-        ).value;
-        fetch(`/details/${selectedDescription}`)
-          .then((response) => response.json())
-          .then((details) => {
-            document.getElementById("height").value = details.Height;
-            document.getElementById("width").value = details.Width;
-            document.getElementById("length").value = details.Length;
-          })
-          .catch((error) => console.error("Error fetching details:", error));
-      }
-
-      // function populateTable(purchases) {
-      //   const tableBody = document.querySelector("#purchaseTable tbody");
-      //   tableBody.innerHTML = ""; // Clear existing table body
-
-      //   if (purchases.length === 0) {
-      //     // Handle case where no purchases are returned
-      //     const row = document.createElement("tr");
-      //     const cell = document.createElement("td");
-      //     cell.colSpan = "13"; // Span across all columns
-      //     cell.textContent = "No purchases found.";
-      //     row.appendChild(cell);
-      //     tableBody.appendChild(row);
-      //     return;
-      //   }
-
-      //   const idDropdown = document.getElementById("contractNumberDropDown");
-      //   purchases.forEach((purchase) => {
-      //     console.log(purchase);
-      //     const row = document.createElement("tr");
-      //     row.setAttribute("data-id", purchase.ID); // Add data-id attribute for identifying the row
-      //     const cells = [
-      //       purchase.ID,
-      //       purchase.ContractNumber,
-      //       purchase.Panel,
-      //       purchase.Description,
-      //       purchase.Height,
-      //       purchase.Width,
-      //       purchase.Length,
-      //       purchase.Notes,
-      //     ];
-      //     const option = document.createElement("option");
-      //     option.value = purchase.ID;
-      //     option.textContent = purchase.ID;
-      //     idDropdown.appendChild(option);
-
-      //     cells.forEach((cellData, i) => {
-      //       const cell = document.createElement("td");
-      //       cell.textContent = cellData;
-
-      //       row.appendChild(cell);
-      //     });
-
-      //     tableBody.appendChild(row);
-      //   });
-      //   document.getElementById("purchaseTable").style.display = "";
-      //   tab();
-      // }
-
-      function populateTable(purchases) {
-  const tableBody = document.querySelector("#purchaseTable tbody");
-  tableBody.innerHTML = ""; // Clear existing table body
-
-  if (purchases.length === 0) {
-    // Handle case where no purchases are returned
-    const row = document.createElement("tr");
-    const cell = document.createElement("td");
-    cell.colSpan = "13"; // Span across all columns
-    cell.textContent = "No purchases found.";
-    row.appendChild(cell);
-    tableBody.appendChild(row);
-    return;
-  }
-
-  const idDropdown = document.getElementById("idDropdownUpdate"); // Corrected target element
-  idDropdown.innerHTML = ""; // Clear existing options
-
-  purchases.forEach((purchase) => {
-    console.log(purchase);
-    const row = document.createElement("tr");
-    row.setAttribute("data-id", purchase.ID); // Add data-id attribute for identifying the row
-    const cells = [
-      purchase.ID,
-      purchase.ContractNumber,
-      purchase.Panel,
-      purchase.Description,
-      purchase.Height,
-      purchase.Width,
-      purchase.Length,
-      purchase.Notes,
-    ];
-
-    cells.forEach((cellData, i) => {
-      const cell = document.createElement("td");
-      cell.textContent = cellData;
-      row.appendChild(cell);
-    });
-
-    tableBody.appendChild(row);
-  });
-
-  document.getElementById("purchaseTable").style.display = "";
-  tab();
-}
-
-
-      function tab() {
-        // Initialize Tabulator on the purchaseTable
+      document.addEventListener("DOMContentLoaded", function () {
         table = new Tabulator("#purchaseTable", {
-          printAsHtml:true,
-          printRowRange:"all",
-    printHeader:"<h1>Copper Count<h1>",
-          // Define column headers based on thead
+          data: [],
+          printAsHtml: true,
+          printRowRange: "active",
+          printHeader: "<h1>Copper Count</h1>",
           columns: [
             { title: "ID", field: "ID", width: 75 },
             {
@@ -297,34 +151,117 @@
             { title: "Counted Length", field: "Length", width: 100 },
             { title: "Notes", field: "Notes", width: 150 },
           ],
-
           layout: "fitColumns",
           width: "100%",
-          // Set height to 400px
           height: 400,
-          // Enable vertical scrolling
           scrollVertical: true,
           movableRows: true,
           movableColumns: true,
         });
+      });
+
+      document.getElementById("print-table").addEventListener("click", function () {
+        if (!table) return;
+        table.print(false, true);
+      });
+
+      function showTable() {
+        document.getElementById("purchaseTable").style.display = "";
+      }
+
+      function clearTableWithMessage(message) {
+        showTable();
+        table.setData([
+          {
+            ID: "",
+            ContractNumber: "",
+            Panel: "",
+            Description: message,
+            Height: "",
+            Width: "",
+            Length: "",
+            Notes: "",
+          },
+        ]);
+      }
+
+      function buildCountRows(purchases) {
+        return purchases.map((purchase) => {
+          return {
+            ID: purchase.ID,
+            ContractNumber: purchase.ContractNumber,
+            Panel: purchase.Panel,
+            Description: purchase.Description,
+            Height: purchase.Height,
+            Width: purchase.Width,
+            Length: purchase.Length,
+            Notes: purchase.Notes,
+          };
+        });
+      }
+
+      function setTableData(rows) {
+        showTable();
+        table.setData(rows);
+      }
+
+      function handlePopulate(event) {
+        if (event) {
+          event.preventDefault();
+        }
+
+        const selectedContractNumber = document.getElementById(
+          "contractNumberDropDown"
+        ).value;
+
+        fetch(`/count/purchases/${selectedContractNumber}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log(data);
+
+            if (!Array.isArray(data) || data.length === 0) {
+              clearTableWithMessage("No purchases found.");
+              return;
+            }
+
+            const rows = buildCountRows(data);
+            setTableData(rows);
+          })
+          .catch((error) => {
+            console.error("Error fetching purchases:", error);
+          });
+      }
+
+      function fetchDetails() {
+        const selectedDescription = document.getElementById(
+          "descriptionDropdown"
+        ).value;
+
+        fetch(`/details/${selectedDescription}`)
+          .then((response) => response.json())
+          .then((details) => {
+            document.getElementById("height").value = details.Height;
+            document.getElementById("width").value = details.Width;
+            document.getElementById("length").value = details.Length;
+          })
+          .catch((error) => console.error("Error fetching details:", error));
       }
 
       function handleSubmit(event) {
-        event.preventDefault(); // Prevent the default form submission behavior
+        event.preventDefault();
 
-        // Gather form data
-        const formData = new FormData(event.target); // event.target refers to the form element
-
-        // Convert formData to JSON
+        const formData = new FormData(event.target);
         const jsonData = {};
+
         formData.forEach((value, key) => {
           jsonData[key] = value;
         });
 
-        // Log the form data for debugging
-        // console.log('Form Data:', jsonData);
-
-        // Send the form data via AJAX
         fetch("/count", {
           method: "POST",
           headers: {
@@ -341,7 +278,6 @@
           .then((data) => {
             console.log("Form submitted successfully:", data);
             window.location.reload();
-            // Optionally, perform any additional actions after form submission
           })
           .catch((error) => {
             console.error("Error submitting form:", error);
@@ -352,74 +288,62 @@
         .getElementById("contractNumberDropDown")
         .addEventListener("change", handlePopulate);
 
-      // Listen for changes on the dropdown list
       document
         .getElementById("descriptionDropdown")
         .addEventListener("change", fetchDetails);
 
-               // Event listener for update button click
-               document.getElementById('updateBtn').addEventListener('click', function() {
-    // Get selected ID from dropdown
-    const selectedId = document.getElementById('idDropdownUpdate').value;
-    // Get notes from input field
-    const notes = document.getElementById('updateNotes').value;
+      document.getElementById("updateBtn").addEventListener("click", function () {
+        const selectedId = document.getElementById("idDropdownUpdate").value;
+        const notes = document.getElementById("updateNotes").value;
 
-    // Create an object with id and notes
-    const data = {
-        id: selectedId,
-        notes: notes
-    };
+        const data = {
+          id: selectedId,
+          notes: notes
+        };
 
-    // Send POST request to server with update data
-    fetch(`/count/update`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        // Reload the page after successful update
-        window.location.reload();
-    })
-    .catch(error => {
-        console.error('Error updating notes:', error);
-    });
-});
-
-// Event listener for contract number dropdown change
-document.getElementById("contractNumberDropDown").addEventListener("change", function() {
-  const selectedContractNumber = this.value; // Get selected contract number
-
-  // Fetch IDs based on selected contract number
-  fetch(`/count/ids/${selectedContractNumber}`)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((ids) => {
-      // Clear existing options in the dropdown
-      const idDropdown = document.getElementById("idDropdownUpdate");
-      idDropdown.innerHTML = "";
-
-      // Populate the dropdown with fetched IDs
-      ids.forEach((id) => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = id;
-        idDropdown.appendChild(option);
+        fetch(`/count/update`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            window.location.reload();
+          })
+          .catch(error => {
+            console.error("Error updating notes:", error);
+          });
       });
-    })
-    .catch((error) => {
-      console.error("Error fetching IDs:", error);
-    });
-});
 
+      document.getElementById("contractNumberDropDown").addEventListener("change", function () {
+        const selectedContractNumber = this.value;
+
+        fetch(`/count/ids/${selectedContractNumber}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((ids) => {
+            const idDropdown = document.getElementById("idDropdownUpdate");
+            idDropdown.innerHTML = "";
+
+            ids.forEach((id) => {
+              const option = document.createElement("option");
+              option.value = id;
+              option.textContent = id;
+              idDropdown.appendChild(option);
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching IDs:", error);
+          });
+      });
     </script>
   </body>
 </html>

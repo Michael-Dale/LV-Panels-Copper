@@ -10,16 +10,13 @@
     <link rel="stylesheet" href="/main.css" />
 
     <title>Audit</title>
-    <!-- Add your CSS styles here -->
     <style>
-      /* CSS code to style Tabulator table headers */
       .tabulator .tabulator-header {
-        color: Black; /* Set text color to white */
+        color: Black;
       }
     </style>
   </head>
   <body>
-    <!-- Navigation bar -->
     <div class="main-nav">
       <ul class="main-nav-list">
         <li><a class="main-nav-link" href="/purchase">Purchase</a></li>
@@ -31,97 +28,133 @@
         <button id="print-table">Print Table</button>
       </ul>
     </div>
+
     <div id="protectedContent" style="display: none;">
-    <!-- Add your JavaScript files here -->
+      <h1>Audit</h1>
 
-    <h1>Audit</h1>
+      <form
+        id="purchaseForm"
+        class="deleteMode"
+        action="/purchase"
+        method="post"
+        onsubmit="handleSubmit(event)"
+      >
+        <div class="control-row">
+          <label for="contractNumberDropDown" class="labelStyle">
+            Contract Number:
+          </label>
+          <select
+            id="contractNumberDropDown"
+            class="dropdownStyle"
+            name="contractNumberDropDown"
+          >
+            <option disabled selected>Select a Contract Number</option>
+            <% contractNumbers.forEach(contractNumbers => { %>
+            <option value="<%= contractNumbers.ContractNumber %>">
+              <%= contractNumbers.ContractNumber %>
+            </option>
+            <% }); %>
+          </select>
+          <button type="button" class="button" onclick="refreshPage()">
+            Refresh Page
+          </button>
+        </div>
 
-    <form
-      id="purchaseForm"
-      class="deleteMode"
-      action="/purchase"
-      method="post"
-      onsubmit="handleSubmit(event)"
-    >
-      <div class="control-row">
-        <label for="contractNumberDropDown" class="labelStyle"
-          >Contract Number:</label
-        >
-        <select
-          id="contractNumberDropDown"
-          class="dropdownStyle"
-          name="contractNumberDropDown"
-        >
-          <option disabled selected>Select a Contract Number</option>
-          <% contractNumbers.forEach(contractNumbers => { %>
-          <option value="<%= contractNumbers.ContractNumber %>">
-            <%= contractNumbers.ContractNumber %>
-          </option>
-          <% }); %>
-        </select>
-        <button type="button" class="button" onclick="refreshPage()">
-          Refresh Page
-        </button>
+        <p class="form-actions">
+          <button type="submit" class="button">Submit</button>
+        </p>
+      </form>
+
+      <div class="height">
+        <div id="purchaseTable" style="display: none"></div>
       </div>
+    </div>
 
-      <p class="form-actions">
-        <button type="submit" class="button">Submit</button>
-      </p>
-    </form>
-    <table id="purchaseTable" style="display: none">
-      <thead>
-        <tr>
-          <th>Contract Number</th>
-          <th>Panel</th>
-          <th>Description</th>
-          <th>Height</th>
-          <th>Width</th>
-          <th>Transacted Length</th>
-          <th>Counted Length</th>
-          <th>Missing Length</th>
-          <th>Rand Spent</th>
-          <th>Rand Missing</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Empty tbody for dynamically populated rows -->
-      </tbody>
-    </table>
-  </div>
     <script src="node_modules\tabulator-tables\dist/js/tabulator.min.js"></script>
     <script>
-      var table;
-      document.getElementById("print-table").addEventListener("click", function(){
-   table.print(false, true);
-});
+      let table = null;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        table = new Tabulator("#purchaseTable", {
+          data: [],
+          printAsHtml: true,
+          printRowRange: "active",
+          printHeader: "<h1>Copper Audit</h1>",
+          columns: [
+            {
+              title: "Contract Number",
+              field: "ContractNumber",
+              minWidth: 175,
+              maxWidth: 250,
+            },
+            { title: "Panel", field: "Panel", width: 150 },
+            { title: "Description", field: "Description", width: 125 },
+            { title: "Height", field: "Height", width: 100 },
+            { title: "Width", field: "Width", width: 100 },
+            {
+              title: "Transacted Length",
+              field: "Transaction_Length",
+              minWidth: 175,
+            },
+            {
+              title: "Counted Length",
+              field: "Count_Length",
+              minWidth: 175,
+            },
+            {
+              title: "Missing Length",
+              field: "Length_Difference",
+              minWidth: 175,
+            },
+            { title: "Rand Spent", field: "totalSpent", width: 150 },
+            { title: "Rand Missing", field: "randMissing", width: 150 },
+          ],
+          layout: "fitColumns",
+          width: "100%",
+          height: 400,
+          scrollVertical: true,
+          movableRows: true,
+          movableColumns: true,
+        });
+
+        checkPasswordEntered();
+      });
+
+      document.getElementById("print-table").addEventListener("click", function () {
+        if (!table) return;
+        table.print(false, true);
+      });
+
+      function redrawTableAfterShow() {
+        setTimeout(() => {
+          if (table) {
+            table.redraw(true);
+          }
+        }, 50);
+      }
+
       function validatePassword() {
-            var enteredPassword = prompt("Please enter the password:");
-            var correctPassword = "LVP98"; // Replace with your delivery page password
+        var enteredPassword = prompt("Please enter the password:");
+        var correctPassword = "LVP98";
 
-            if (enteredPassword === correctPassword) {
-                // Password correct, show the protected content
-                document.getElementById("protectedContent").style.display = "block";
-                // Store a flag indicating that the user has entered the correct password
-                sessionStorage.setItem("passwordEnteredAudit", "true");
-            } else {
-                // Password incorrect, show an error message
-                alert("Incorrect password!");
-            }
+        if (enteredPassword === correctPassword) {
+          document.getElementById("protectedContent").style.display = "block";
+          sessionStorage.setItem("passwordEnteredAudit", "true");
+          redrawTableAfterShow();
+        } else {
+          alert("Incorrect password!");
         }
+      }
 
-        // Function to check if the user has already entered the password during the current session
-        function checkPasswordEntered() {
-            if (sessionStorage.getItem("passwordEnteredAudit") === "true") {
-                // User has entered the correct password, show the protected content
-                document.getElementById("protectedContent").style.display = "block";
-            } else {
-                // User has not entered the correct password yet, prompt for password
-                validatePassword();
-            }
+      function checkPasswordEntered() {
+        if (sessionStorage.getItem("passwordEnteredAudit") === "true") {
+          document.getElementById("protectedContent").style.display = "block";
+          redrawTableAfterShow();
+        } else {
+          validatePassword();
         }
+      }
 
-        // Call checkPasswordEntered() when the page is loaded
-        window.onload = checkPasswordEntered;
       function handleSubmit(event) {
         event.preventDefault();
 
@@ -137,101 +170,66 @@
             return response.json();
           })
           .then((data) => {
-            populateTable(data);
+            if (!Array.isArray(data) || data.length === 0) {
+              clearTableWithMessage("No purchases found.");
+              return;
+            }
+
+            const rows = buildAuditRows(data);
+            setTableData(rows);
           })
           .catch((error) => {
             console.error("Error fetching purchases:", error);
           });
       }
 
-      function populateTable(purchases) {
-        let temp=20;
-        const tableBody = document.querySelector("#purchaseTable tbody");
-        tableBody.innerHTML = ""; // Clear existing table body
+      function buildAuditRows(purchases) {
+        return purchases.map((purchase) => {
+          const pricePerMm = purchase.PricePerMeter / 1000;
+          const totalSpent = pricePerMm * purchase.Transaction_Length;
+          const randMissing = pricePerMm * purchase.Length_Difference;
 
-        if (purchases.length === 0) {
-          // Handle case where no purchases are returned
-          const row = document.createElement("tr");
-          const cell = document.createElement("td");
-          cell.colSpan = "13"; // Span across all columns
-          cell.textContent = "No purchases found.";
-          row.appendChild(cell);
-          tableBody.appendChild(row);
-          return;
-        }
-
-        purchases.forEach((purchase) => {
-          const row = document.createElement("tr");
-          const pricePerMm=purchase.PricePerMeter/1000;
-          const totalSpent=pricePerMm*purchase.Transaction_Length;
-          const randMissing=pricePerMm*purchase.Length_Difference;
-          const cells = [
-            purchase.ContractNumber,
-            purchase.Panel,
-            purchase.Description,
-            purchase.Height,
-            purchase.Width,
-            purchase.Transaction_Length,
-            purchase.Count_Length,
-            purchase.Length_Difference,
-            totalSpent,
-            randMissing,
-          ];
-
-          cells.forEach((cellData, i) => {
-            const cell = document.createElement("td");
-
-            cell.textContent = cellData;
-            row.appendChild(cell);
-          });
-
-          tableBody.appendChild(row);
+          return {
+            ContractNumber: purchase.ContractNumber,
+            Panel: purchase.Panel,
+            Description: purchase.Description,
+            Height: purchase.Height,
+            Width: purchase.Width,
+            Transaction_Length: purchase.Transaction_Length,
+            Count_Length: purchase.Count_Length,
+            Length_Difference: purchase.Length_Difference,
+            totalSpent: totalSpent,
+            randMissing: randMissing,
+          };
         });
-        document.getElementById("purchaseTable").style.display = "";
-        tab();
       }
 
-      function tab() {
-        // Initialize Tabulator on the purchaseTable
-        table = new Tabulator("#purchaseTable", {
-          printAsHtml:true,
-          printRowRange:"all",
-    printHeader:"<h1>Copper Audit<h1>",
-          // Define column headers based on thead
-          columns: [
-            {
-              title: "Contract Number",
-              field: "ContractNumber",
-              minWidth: 175,
-              maxWidth: 250,
-            },
-            { title: "Panel", field: "Panel", width: 150 },
-            { title: "Description", field: "Description", width: 125 },
-            { title: "Height", field: "Height", width: 100 },
-            { title: "Width", field: "Width", width: 100 },
-            {
-              title: "Transacted Length",
-              field: "Transaction_Length",
-              minwidth: 175,
-            },
-            { title: "Counted Length", field: "Count_Length", minwidth: 175 },
-            {
-              title: "Missing Length",
-              field: "Length_Difference",
-              minwidth: 175,
-            },
-            { title: "Rand Spent", field: "totalSpent", width: 150 },
-            { title: "Rand Missing", field: "randMissing", width: 150 },
-          ],
-          layout: "fitColumns",
-          width: "100%",
-          // Set height to 400px
-          height: 400,
-          // Enable vertical scrolling
-          scrollVertical: true,
-          movableRows: true,
-          movableColumns: true,
-        });
+      function showTable() {
+        document.getElementById("purchaseTable").style.display = "";
+        redrawTableAfterShow();
+      }
+
+      function clearTableWithMessage(message) {
+        showTable();
+        table.setData([
+          {
+            ContractNumber: "",
+            Panel: "",
+            Description: message,
+            Height: "",
+            Width: "",
+            Transaction_Length: "",
+            Count_Length: "",
+            Length_Difference: "",
+            totalSpent: "",
+            randMissing: "",
+          },
+        ]);
+      }
+
+      function setTableData(rows) {
+        showTable();
+        table.setData(rows);
       }
 
       function refreshPage() {

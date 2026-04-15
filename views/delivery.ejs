@@ -11,15 +11,13 @@
 
     <title>Delivery</title>
     <style>
-      /* CSS code to style Tabulator table headers */
       .tabulator .tabulator-header {
-        color: Black; /* Set text color to white */
+        color: Black;
       }
     </style>
   </head>
 
   <body>
-    <!-- Navigation bar -->
     <div class="main-nav">
       <ul class="main-nav-list">
         <li><a class="main-nav-link" href="/purchase">Purchase</a></li>
@@ -32,12 +30,7 @@
       </ul>
     </div>
 
-    <!-- Your main content -->
-    <div class="content">
-      <!-- Include your main content here -->
-    </div>
-
-    <!-- Add your JavaScript files here -->
+    <div class="content"></div>
 
     <h1>Delivery</h1>
 
@@ -49,9 +42,9 @@
       onsubmit="handleSubmit(event)"
     >
       <div class="control-row">
-        <label class="labelStyle" for="contractNumberDropDown"
-          >Contract Number:</label
-        >
+        <label class="labelStyle" for="contractNumberDropDown">
+          Contract Number:
+        </label>
         <select
           id="contractNumberDropDown"
           class="dropdownStyle"
@@ -73,155 +66,23 @@
         <button type="submit" class="button">Submit</button>
       </p>
     </form>
+
     <div class="height">
-      <table id="purchaseTable" style="display: none">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Contract Number</th>
-            <th>Description</th>
-            <th>Height</th>
-            <th>Width</th>
-            <th>Length</th>
-            <th>OrderQty</th>
-            <th>Qty Received</th>
-            <th>Date Received</th>
-            <th>Kg Per Length</th>
-            <th>Total Length Ordered</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <!-- Empty tbody for dynamically populated rows -->
-      </table>
+      <div id="purchaseTable" style="display: none"></div>
     </div>
 
     <button id="updateDeliveryBtn" class="button">Update Delivery</button>
+
     <script src="node_modules\tabulator-tables\dist/js/tabulator.min.js"></script>
     <script>
-      var table;
-      document.getElementById("print-table").addEventListener("click", function(){
-   table.print(false, true);
-});
-      function refreshPage() {
-        window.location.reload();
-      }
-      document
-        .getElementById("updateDeliveryBtn")
-        .addEventListener("click", function () {
-          // Get table data
-          var tableData = table.getData(true); // Use getData(true) to get raw data values
+      let table = null;
 
-          // Array to store data for update
-          const updateData = [];
-
-          // Iterate over table data and extract delivery quantities
-          tableData.forEach((row) => {
-            const receivedQty = row.QtyReceived;
-            if (receivedQty !== null && receivedQty !== "") {
-              // Extract other necessary data from the row
-              const id = row.ID;
-              const contractNumber = row.ContractNumber;
-              const description = row.Description;
-              // Add data to updateData array
-              updateData.push({ id, contractNumber, receivedQty, description });
-            }
-          });
-
-          // Send updateData to the server
-          fetch("/delivery/updateDelivery", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ updateData }),
-          })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Network response was not ok");
-              }
-              return response.json();
-            })
-            .then((data) => {
-              console.log(data); // Handle response from server if needed
-            })
-            .catch((error) => {
-              console.error("Error updating delivery:", error);
-            });
-        });
-
-      function handleSubmit(event) {
-        event.preventDefault();
-
-        const selectedContractNumber = document.getElementById(
-          "contractNumberDropDown"
-        ).value;
-
-        fetch(`/delivery/purchases/${selectedContractNumber}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            populateTable(data);
-          })
-          .catch((error) => {
-            console.error("Error fetching purchases:", error);
-          });
-      }
-
-      function populateTable(purchases) {
-        const tableBody = document.querySelector("#purchaseTable tbody");
-        tableBody.innerHTML = ""; // Clear existing table body
-
-        if (purchases.length === 0) {
-          // Handle case where no purchases are returned
-          const row = document.createElement("tr");
-          const cell = document.createElement("td");
-          cell.colSpan = "13"; // Span across all columns
-          cell.textContent = "No purchases found.";
-          row.appendChild(cell);
-          tableBody.appendChild(row);
-          return;
-        }
-
-        purchases.forEach((purchase) => {
-          const row = document.createElement("tr");
-          const cells = [
-            purchase.ID,
-            purchase.ContractNumber,
-            purchase.Description,
-            purchase.Height,
-            purchase.Width,
-            purchase.Length,
-            purchase.OrderQty,
-            purchase.QtyReceived,
-            purchase.DateReceived,
-            purchase.KgPerLength,
-            purchase.TotalLengthOrdered,
-          ];
-
-          cells.forEach((cellData, i) => {
-            const cell = document.createElement("td");
-
-            cell.textContent = cellData;
-            row.appendChild(cell);
-          });
-
-          tableBody.appendChild(row);
-        });
-        document.getElementById("purchaseTable").style.display = "";
-        tab();
-      }
-
-      function tab() {
-        // Initialize Tabulator on the purchaseTable
+      document.addEventListener("DOMContentLoaded", function () {
         table = new Tabulator("#purchaseTable", {
-          printAsHtml:true,
-          printRowRange:"all",
-    printHeader:"<h1>Copper Delivery<h1>",
-          // Define column headers based on thead
+          data: [],
+          printAsHtml: true,
+          printRowRange: "active",
+          printHeader: "<h1>Copper Delivery</h1>",
           columns: [
             { title: "ID", field: "ID", width: 75 },
             {
@@ -244,16 +105,137 @@
             { title: "Kg Per Length", field: "KgPerLength", width: 150 },
             { title: "Total Length Ordered", field: "TotalLengthOrdered" },
           ],
-
           layout: "fitColumns",
           width: "100%",
-          // Set height to 400px
           height: 250,
-          // Enable vertical scrolling
           scrollVertical: true,
           movableRows: true,
           movableColumns: true,
         });
+      });
+
+      document.getElementById("print-table").addEventListener("click", function () {
+        if (!table) return;
+        table.print(false, true);
+      });
+
+      function refreshPage() {
+        window.location.reload();
+      }
+
+      function showTable() {
+        document.getElementById("purchaseTable").style.display = "";
+      }
+
+      function clearTableWithMessage(message) {
+        showTable();
+        table.setData([
+          {
+            ID: "",
+            ContractNumber: "",
+            Description: message,
+            Height: "",
+            Width: "",
+            Length: "",
+            OrderQty: "",
+            QtyReceived: "",
+            DateReceived: "",
+            KgPerLength: "",
+            TotalLengthOrdered: "",
+          },
+        ]);
+      }
+
+      function buildDeliveryRows(purchases) {
+        return purchases.map((purchase) => {
+          return {
+            ID: purchase.ID,
+            ContractNumber: purchase.ContractNumber,
+            Description: purchase.Description,
+            Height: purchase.Height,
+            Width: purchase.Width,
+            Length: purchase.Length,
+            OrderQty: purchase.OrderQty,
+            QtyReceived: purchase.QtyReceived,
+            DateReceived: purchase.DateReceived,
+            KgPerLength: purchase.KgPerLength,
+            TotalLengthOrdered: purchase.TotalLengthOrdered,
+          };
+        });
+      }
+
+      function setTableData(rows) {
+        showTable();
+        table.setData(rows);
+      }
+
+      document
+        .getElementById("updateDeliveryBtn")
+        .addEventListener("click", function () {
+          if (!table) return;
+
+          const tableData = table.getData();
+          const updateData = [];
+
+          tableData.forEach((row) => {
+            const receivedQty = row.QtyReceived;
+
+            if (receivedQty !== null && receivedQty !== "") {
+              const id = row.ID;
+              const contractNumber = row.ContractNumber;
+              const description = row.Description;
+
+              updateData.push({ id, contractNumber, receivedQty, description });
+            }
+          });
+
+          fetch("/delivery/updateDelivery", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ updateData }),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              console.log(data);
+            })
+            .catch((error) => {
+              console.error("Error updating delivery:", error);
+            });
+        });
+
+      function handleSubmit(event) {
+        event.preventDefault();
+
+        const selectedContractNumber = document.getElementById(
+          "contractNumberDropDown"
+        ).value;
+
+        fetch(`/delivery/purchases/${selectedContractNumber}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (!Array.isArray(data) || data.length === 0) {
+              clearTableWithMessage("No purchases found.");
+              return;
+            }
+
+            const rows = buildDeliveryRows(data);
+            setTableData(rows);
+          })
+          .catch((error) => {
+            console.error("Error fetching purchases:", error);
+          });
       }
     </script>
   </body>

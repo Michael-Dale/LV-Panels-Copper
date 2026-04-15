@@ -9,9 +9,8 @@
     <title>Purchases</title>
   </head>
   <style>
-    /* CSS code to style Tabulator table headers */
     .tabulator .tabulator-header {
-      color: Black; /* Set text color to white */
+      color: Black;
     }
   </style>
   <body>
@@ -26,214 +25,216 @@
         <button id="print-table">Print Table</button>
       </ul>
     </div>
+
     <div id="protectedContent" style="display: none;">
-    <h1>All Purchases</h1>
-    <table id="purchaseTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Contract Number</th>
-          <th>Description</th>
-          <th>Height</th>
-          <th>Width</th>
-          <th>Length</th>
-          <th>OrderQty</th>
-          <th>DateReceived</th>
-          <th>KgPerLength</th>
-          <th>PricePerLength</th>
-          <th>PricePerKg</th>
-          <th>TotalLengthOrdered</th>
-          <!-- Add additional columns here if needed -->
-        </tr>
-      </thead>
-      <tbody>
-        <% purchases.forEach(purchase => { %>
-        <tr>
-          <td><%= purchase.ID %></td>
-          <td><%= purchase.ContractNumber %></td>
-          <td><%= purchase.Description %></td>
-          <td><%= purchase.Height %></td>
-          <td><%= purchase.Width %></td>
-          <td><%= purchase.Length %></td>
-          <td><%= purchase.OrderQty %></td>
-          <td><%= purchase.DateReceived %></td>
-          <td><%= purchase.KgPerLength %></td>
-          <td><%= purchase.PricePerLength %></td>
-          <td><%= purchase.PricePerKg %></td>
-          <td><%= purchase.TotalLengthOrdered %></td>
-          <!-- Add additional columns here if needed -->
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-    <section class="section-cta">
-      <div class="container">
-        <div class="cta">
-          <div class="cta-text-box">
-    <h2>Purchase Order</h2>
-    <p class="cta-text">Enter purchase details</p>
-    <form
-      id="purchaseForm"
-      class="cta-form"
-      action="/purchase"
-      method="post"
-      onsubmit="handleSubmit(event)"
-    >
-      
+      <h1>All Purchases</h1>
 
-      <div class="control">
-        <label for="contractNumber">Contract Number:</label>
-        <input id="contractNumber" name="contractNumber" required />
-      </div>
+      <table id="purchaseTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Contract Number</th>
+            <th>Description</th>
+            <th>Height</th>
+            <th>Width</th>
+            <th>Length</th>
+            <th>OrderQty</th>
+            <th>DateReceived</th>
+            <th>KgPerLength</th>
+            <th>PricePerLength</th>
+            <th>PricePerKg</th>
+            <th>TotalLengthOrdered</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% purchases.forEach(purchase => { %>
+          <tr>
+            <td><%= purchase.ID %></td>
+            <td><%= purchase.ContractNumber %></td>
+            <td><%= purchase.Description %></td>
+            <td><%= purchase.Height %></td>
+            <td><%= purchase.Width %></td>
+            <td><%= purchase.Length %></td>
+            <td><%= purchase.OrderQty %></td>
+            <td><%= purchase.DateReceived %></td>
+            <td><%= purchase.KgPerLength %></td>
+            <td><%= purchase.PricePerLength %></td>
+            <td><%= purchase.PricePerKg %></td>
+            <td><%= purchase.TotalLengthOrdered %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
 
-      <div class="control-row">
-        <label for="descriptionDropdown">Description:</label>
-        <select id="descriptionDropdown" name="descriptionDropdown">
-          <option disabled selected>Select a Description</option>
-          <% descriptions.forEach(description => { %>
-          <option value="<%= description.Description %>">
-            <%= description.Description %>
-          </option>
-          <% }); %>
-        </select>
-      </div>
+      <section class="section-cta">
+        <div class="container">
+          <div class="cta">
+            <div class="cta-text-box">
+              <h2>Purchase Order</h2>
+              <p class="cta-text">Enter purchase details</p>
 
-      <div class="control">
-        <label for="height">Height:</label>
-        <input id="height" name="height" required />
-      </div>
+              <form
+                id="purchaseForm"
+                class="cta-form"
+                action="/purchase"
+                method="post"
+                onsubmit="handleSubmit(event)"
+              >
+                <div class="control">
+                  <label for="contractNumber">Contract Number:</label>
+                  <input id="contractNumber" name="contractNumber" required />
+                </div>
 
-      <div class="control">
-        <label for="width">Width:</label>
-        <input id="width" name="width" required />
-      </div>
-      <div class="control">
-        <label for="length">Length:</label>
-        <input id="length" name="length" required />
-      </div>
+                <div class="control-row">
+                  <label for="descriptionDropdown">Description:</label>
+                  <select id="descriptionDropdown" name="descriptionDropdown">
+                    <option disabled selected>Select a Description</option>
+                    <% descriptions.forEach(description => { %>
+                    <option value="<%= description.Description %>">
+                      <%= description.Description %>
+                    </option>
+                    <% }); %>
+                  </select>
+                </div>
 
-      <div class="control">
-        <label for="orderQuantity">Order Quantity:</label>
-        <input id="orderQuantity" name="orderQuantity" required />
-      </div>
-      <div class="control">
-        <label for="kgPerLength">Kg/Length:</label>
-        <input id="kgPerLength" name="kgPerLength" required />
-      </div>
-      <div class="control">
-        <label for="pricePerLength">Price/Length:</label>
-        <input id="pricePerLength" name="pricePerLength" required />
-      </div>
+                <div class="control">
+                  <label for="height">Height:</label>
+                  <input id="height" name="height" required />
+                </div>
 
-      <p class="form-actions right">
-        <button type="reset" class="button button-flat btn--form">Reset</button>
-        <button type="submit" class="button btn--form">Submit</button>
-      </p>
-    </form>
-    <div class="cta-form">
-      <div class="control">
-        <label for="idDropdown" class="deleteLabel">Row ID Selected:</label>
-      <select id="idDropdown" name="idDropdown">
-        <option disabled selected>Select a Row to Delete</option>
-        <% purchases.forEach(p => { %>
-        <option value="<%= p.ID %>"><%= p.ID %></option>
-        <% }); %>
-      </select>
-      </div>
-      
-      
-    <button class="button btn--form control right" id="deleteBtn">Delete</button>
-      
+                <div class="control">
+                  <label for="width">Width:</label>
+                  <input id="width" name="width" required />
+                </div>
+
+                <div class="control">
+                  <label for="length">Length:</label>
+                  <input id="length" name="length" required />
+                </div>
+
+                <div class="control">
+                  <label for="orderQuantity">Order Quantity:</label>
+                  <input id="orderQuantity" name="orderQuantity" required />
+                </div>
+
+                <div class="control">
+                  <label for="kgPerLength">Kg/Length:</label>
+                  <input id="kgPerLength" name="kgPerLength" required />
+                </div>
+
+                <div class="control">
+                  <label for="pricePerLength">Price/Length:</label>
+                  <input id="pricePerLength" name="pricePerLength" required />
+                </div>
+
+                <p class="form-actions right">
+                  <button type="reset" class="button button-flat btn--form">Reset</button>
+                  <button type="submit" class="button btn--form">Submit</button>
+                </p>
+              </form>
+
+              <div class="cta-form">
+                <div class="control">
+                  <label for="idDropdown" class="deleteLabel">Row ID Selected:</label>
+                  <select id="idDropdown" name="idDropdown">
+                    <option disabled selected>Select a Row to Delete</option>
+                    <% purchases.forEach(p => { %>
+                    <option value="<%= p.ID %>"><%= p.ID %></option>
+                    <% }); %>
+                  </select>
+                </div>
+
+                <button class="button btn--form control right" id="deleteBtn">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  </div>
-</div>
-</section>
-</div>
 
-    
+    <script src="node_modules\tabulator-tables\dist/js/tabulator.min.js"></script>
+    <script>
+      function validatePassword() {
+  var enteredPassword = prompt("Please enter the password:");
+  var correctPassword = "LVP98";
 
-       <script src="node_modules\tabulator-tables\dist/js/tabulator.min.js"></script>
-  <script>
- document.getElementById("print-table").addEventListener("click", function(){
-   table.print(false, true);
-});
-function validatePassword() {
-            var enteredPassword = prompt("Please enter the password:");
-            var correctPassword = "LVP98"; // Replace with your actual password
+  if (enteredPassword === correctPassword) {
+    document.getElementById("protectedContent").style.display = "block";
+    sessionStorage.setItem("passwordEntered", "true");
 
-            if (enteredPassword === correctPassword) {
-                // Password correct, show the protected content
-                document.getElementById("protectedContent").style.display = "block";
-                // Store a flag indicating that the user has entered the correct password
-                sessionStorage.setItem("passwordEntered", "true");
-            } else {
-                // Password incorrect, show an error message
-                alert("Incorrect password!");
-            }
-        }
+    // ✅ same fix here
+    setTimeout(() => {
+      if (table) {
+        table.redraw(true);
+      }
+    }, 50);
 
-        // Function to check if the user has already entered the password during the current session
-        function checkPasswordEntered() {
-            if (sessionStorage.getItem("passwordEntered") === "true") {
-                // User has entered the correct password, show the protected content
-                document.getElementById("protectedContent").style.display = "block";
-            } else {
-                // User has not entered the correct password yet, prompt for password
-                validatePassword();
-            }
-        }
+  } else {
+    alert("Incorrect password!");
+  }
+}
 
-        // Call checkPasswordEntered() when the page is loaded
-        window.onload = checkPasswordEntered;
-    // Initialize Tabulator on the purchaseTable
-    var table = new Tabulator("#purchaseTable", {
-      printAsHtml:true,
-      printRowRange:"all",
-    printHeader:"<h1>Copper Purchases<h1>",
-      // Define column headers based on thead
-      columns: [
-        { title: "ID", field: "ID", width: 75 },
-        { title: "Contract Number", field: "ContractNumber" ,minWidth: 175 },
-        { title: "Description", field: "Description",width: 125  },
-        { title: "Height", field: "Height" , width: 100},
-        { title: "Width", field: "Width" , width: 100},
-        { title: "Length", field: "Length" , width: 100},
-        { title: "OrderQty", field: "OrderQty" , width: 150},
-        { title: "DateReceived", field: "DateReceived" , width: 150},
-        { title: "KgPerLength", field: "KgPerLength" , width: 150},
-        { title: "PricePerLength", field: "PricePerLength" , width: 175},
-        { title: "PricePerKg", field: "PricePerKg" },
-        { title: "TotalLengthOrdered", field: "TotalLengthOrdered" }
-      ],
-      layout: "fitColumns",
-      width: "100%",
-       // Set height to 400px
-    height: 250,
-    // Enable vertical scrolling
-    scrollVertical: true,
-    movableRows: true,
-    movableColumns: true,
-    initialSort:[ // Define initial sort
-        {column:"ContractNumber", dir:"desc"}
-    ],
-    });
+      function checkPasswordEntered() {
+  if (sessionStorage.getItem("passwordEntered") === "true") {
+    document.getElementById("protectedContent").style.display = "block";
+
+    // ✅ FIX: force Tabulator to redraw after becoming visible
+    setTimeout(() => {
+      if (table) {
+        table.redraw(true);
+      }
+    }, 50);
+
+  } else {
+    validatePassword();
+  }
+}
+
+      window.onload = checkPasswordEntered;
+
+      var table = new Tabulator("#purchaseTable", {
+        printAsHtml: true,
+        printRowRange: "active",
+        printHeader: "<h1>Copper Purchases</h1>",
+        columns: [
+          { title: "ID", field: "ID", width: 75 },
+          { title: "Contract Number", field: "ContractNumber", minWidth: 175 },
+          { title: "Description", field: "Description", width: 125 },
+          { title: "Height", field: "Height", width: 100 },
+          { title: "Width", field: "Width", width: 100 },
+          { title: "Length", field: "Length", width: 100 },
+          { title: "OrderQty", field: "OrderQty", width: 150 },
+          { title: "DateReceived", field: "DateReceived", width: 150 },
+          { title: "KgPerLength", field: "KgPerLength", width: 150 },
+          { title: "PricePerLength", field: "PricePerLength", width: 175 },
+          { title: "PricePerKg", field: "PricePerKg" },
+          { title: "TotalLengthOrdered", field: "TotalLengthOrdered" }
+        ],
+        layout: "fitColumns",
+        width: "100%",
+        height: 250,
+        scrollVertical: true,
+        movableRows: true,
+        movableColumns: true,
+        initialSort: [
+          { column: "ContractNumber", dir: "desc" }
+        ],
+      });
+
+      document.getElementById("print-table").addEventListener("click", function () {
+        table.print(false, true);
+      });
 
       function handleSubmit(event) {
-        event.preventDefault(); // Prevent the default form submission behavior
+        event.preventDefault();
 
-        // Gather form data
-        const formData = new FormData(event.target); // event.target refers to the form element
-        
-        // Convert formData to JSON
+        const formData = new FormData(event.target);
         const jsonData = {};
+
         formData.forEach((value, key) => {
           jsonData[key] = value;
         });
 
-        // Log the form data for debugging
-        // console.log('Form Data:', jsonData);
-
-        // Send the form data via AJAX
         fetch("/purchase", {
           method: "POST",
           headers: {
@@ -250,18 +251,17 @@ function validatePassword() {
           .then((data) => {
             console.log("Form submitted successfully:", data);
             window.location.reload();
-            // Optionally, perform any additional actions after form submission
           })
           .catch((error) => {
             console.error("Error submitting form:", error);
           });
       }
 
-      // Function to fetch details based on selected description
       function fetchDetails() {
         const selectedDescription = document.getElementById(
           "descriptionDropdown"
         ).value;
+
         fetch(`/details/${selectedDescription}`)
           .then((response) => response.json())
           .then((details) => {
@@ -269,38 +269,31 @@ function validatePassword() {
             document.getElementById("width").value = details.Width;
             document.getElementById("length").value = details.Length;
             document.getElementById("kgPerLength").value = details.KgPerLength;
-            document.getElementById("pricePerLength").value =
-              details.PricePerLength;
+            document.getElementById("pricePerLength").value = details.PricePerLength;
           })
           .catch((error) => console.error("Error fetching details:", error));
       }
 
-      // Listen for changes on the dropdown list
       document
         .getElementById("descriptionDropdown")
         .addEventListener("change", fetchDetails);
 
+      document.getElementById("deleteBtn").addEventListener("click", function () {
+        const selectedId = document.getElementById("idDropdown").value;
 
-        // Event listener for delete button click
-  document.getElementById('deleteBtn').addEventListener('click', function() {
-    // Get selected ID from dropdown
-    const selectedId = document.getElementById('idDropdown').value;
-    
-    // Send DELETE request to server
-    fetch(`/delete/${selectedId}`, {
-      method: 'DELETE'
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      // Reload the page after successful deletion
-      window.location.reload();
-    })
-    .catch(error => {
-      console.error('Error deleting row:', error);
-    });
-  });
+        fetch(`/delete/${selectedId}`, {
+          method: "DELETE"
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            window.location.reload();
+          })
+          .catch(error => {
+            console.error("Error deleting row:", error);
+          });
+      });
     </script>
   </body>
 </html>

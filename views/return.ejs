@@ -11,9 +11,8 @@
 
     <title>Purchases</title>
     <style>
-      /* CSS code to style Tabulator table headers */
       .tabulator .tabulator-header {
-        color: Black; /* Set text color to white */
+        color: Black;
       }
     </style>
   </head>
@@ -29,7 +28,9 @@
         <button id="print-table">Print Table</button>
       </ul>
     </div>
+
     <h1>Return Receipt</h1>
+
     <form
       id="purchaseForm"
       class="deleteMode"
@@ -62,33 +63,17 @@
         <button type="submit" class="button">Submit</button>
       </p>
     </form>
+
     <div class="height">
-      <table id="purchaseTable" style="display: none">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Contract Number</th>
-            <th>Panel Number</th>
-            <th>Description</th>
-            <th>Height</th>
-            <th>Width</th>
-            <th>Length Per Piece</th>
-            <th>Qty Issued</th>
-            <th>Total Original Length</th>
-            <th>Total Length Remaining</th>
-            <th>Issue Date</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <!-- Empty tbody for dynamically populated rows -->
-      </table>
+      <div id="purchaseTable" style="display: none"></div>
     </div>
+
     <section class="section-cta">
       <div class="container">
         <div class="cta top-bot-padding">
           <div class="cta-text-box">
             <form
-              id="purchaseForm"
+              id="returnForm"
               class="cta-form"
               action="/return"
               method="post"
@@ -134,6 +119,7 @@
                 <label for="widthLbl">Width:</label>
                 <label id="widthLblInput"></label>
               </div>
+
               <div class="control">
                 <label for="length">Length:</label>
                 <input id="length" name="length" required />
@@ -145,7 +131,6 @@
               </div>
 
               <p class="form-actions right">
-                <!-- <button type="reset" class="button button-flat">Reset</button> -->
                 <button type="submit" class="button btn--form">Submit</button>
               </p>
             </form>
@@ -156,190 +141,15 @@
 
     <script src="node_modules\tabulator-tables\dist/js/tabulator.min.js"></script>
     <script>
-      var table;
-      document.getElementById("print-table").addEventListener("click", function(){
-   table.print(false, true);
-});
+      let table = null;
       let insertData = [];
 
-      function handleReturn(event) {
-        event.preventDefault();
-
-        let sendingData = [];
-
-        // Extract necessary data from the row
-        const id=insertData[0].ID;
-        const contractNumber = insertData[0].ContractNumber;
-        const returnType = document.getElementById("typeDropdown").value;
-        const description = insertData[0].Description;
-        const panelNumber = insertData[0].Panel;
-        const height = insertData[0].Height;
-        const width = insertData[0].Width;
-        const length = document.getElementById("length").value;
-        const qty = document.getElementById("returnQty").value;
-
-        // Add data to insertData array
-        sendingData.push({
-          id,
-          contractNumber,
-          returnType,
-          panelNumber,
-          description,
-          height,
-          width,
-          length,
-          qty,
-        });
-
-        // console.log("Data to be inserted:", insertData); // Debugging line
-
-        // Send insertData to the server
-        fetch("/return/insertReturnTransaction", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sendingData }),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log(data); // Handle response from server if needed
-          })
-          .catch((error) => {
-            console.error("Error inserting data:", error);
-          });
-          window.location.reload();
-      }
-
-      function populateData(data) {
-        document.getElementById("contractNumberLblInput").textContent =
-          data.ContractNumber;
-        document.getElementById("panelLblInput").textContent = data.Panel;
-        document.getElementById("descriptionLblInput").textContent =
-          data.Description;
-        document.getElementById("heightLblInput").textContent = data.Height;
-        document.getElementById("widthLblInput").textContent = data.Width;
-        // Assuming you want to set the value of the length input field
-        document.getElementById("length").value = data.Length;
-      }
-
-      // Define the function to handle the selection change
-      function handleSelectionChange(selectedValue) {
-        // console.log("Selected value:", selectedValue);
-        // Add your logic here
-        fetch(`/return/id/${selectedValue}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            populateData(data[0]);
-            insertData.push(data[0]);
-            console.log(insertData);
-
-            // populateTable(data);TODO
-          })
-          .catch((error) => {
-            console.error("Error fetching purchases:", error);
-          });
-      }
-
-      // Attach the change event listener to the dropdown
-      document
-        .getElementById("idDropdown")
-        .addEventListener("change", function () {
-          const selectedValue = this.value;
-          handleSelectionChange(selectedValue);
-          this.disabled = true;
-        });
-
-      function handleSubmit(event) {
-        event.preventDefault();
-        qtyInStock = [];
-        const selectedContractNumber = document.getElementById(
-          "contractNumberDropDown"
-        ).value;
-
-        fetch(`/return/transactions/${selectedContractNumber}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            populateTable(data);
-          })
-          .catch((error) => {
-            console.error("Error fetching purchases:", error);
-          });
-      }
-
-      function populateTable(purchases) {
-        const tableBody = document.querySelector("#purchaseTable tbody");
-        tableBody.innerHTML = ""; // Clear existing table body
-
-        if (purchases.length === 0) {
-          // Handle case where no purchases are returned
-          const row = document.createElement("tr");
-          const cell = document.createElement("td");
-          cell.colSpan = "13"; // Span across all columns
-          cell.textContent = "No purchases found.";
-          row.appendChild(cell);
-          tableBody.appendChild(row);
-          return;
-        }
-
-        const idDropdown = document.getElementById("idDropdown");
-        purchases.forEach((purchase) => {
-          // console.log(purchase);
-          const row = document.createElement("tr");
-          row.setAttribute("data-id", purchase.ID); // Add data-id attribute for identifying the row
-          const cells = [
-            purchase.ID,
-            purchase.ContractNumber,
-            purchase.Panel,
-            purchase.Description,
-            purchase.Height,
-            purchase.Width,
-            purchase.LengthPerPiece,
-            purchase.Qty,
-            purchase.TotalOriginalLength,
-            purchase.TotalCorrectedLength,
-            purchase.DateOfTransaction,
-          ];
-          const option = document.createElement("option");
-          option.value = purchase.ID;
-          option.textContent = purchase.ID;
-          idDropdown.appendChild(option);
-
-          cells.forEach((cellData, i) => {
-            const cell = document.createElement("td");
-            cell.textContent = cellData;
-
-            row.appendChild(cell);
-          });
-
-          tableBody.appendChild(row);
-        });
-        document.getElementById("purchaseTable").style.display = "";
-        tab();
-      }
-
-      function tab() {
-        // Initialize Tabulator on the purchaseTable
+      document.addEventListener("DOMContentLoaded", function () {
         table = new Tabulator("#purchaseTable", {
-          printAsHtml:true,
-          printRowRange:"all",
-    printHeader:"<h1>Copper Returns<h1>",
-          // Define column headers based on thead
+          data: [],
+          printAsHtml: true,
+          printRowRange: "active",
+          printHeader: "<h1>Copper Returns</h1>",
           columns: [
             { title: "ID", field: "ID", width: 75 },
             {
@@ -358,18 +168,200 @@
             { title: "Total Length Remaining", field: "TotalCorrectedLength", width: 100 },
             { title: "Issue Date", field: "DateOfTransaction", width: 150 },
           ],
-
-          //<th>Total Original Length</th>
-          //<th>Total Corrected Length</th>
           layout: "fitColumns",
           width: "100%",
-          // Set height to 400px
           height: 250,
-          // Enable vertical scrolling
           scrollVertical: true,
           movableRows: true,
           movableColumns: true,
         });
+      });
+
+      document.getElementById("print-table").addEventListener("click", function () {
+        if (!table) return;
+        table.print(false, true);
+      });
+
+      function handleReturn(event) {
+        event.preventDefault();
+
+        if (!insertData.length) {
+          return;
+        }
+
+        let sendingData = [];
+
+        const id = insertData[0].ID;
+        const contractNumber = insertData[0].ContractNumber;
+        const returnType = document.getElementById("typeDropdown").value;
+        const description = insertData[0].Description;
+        const panelNumber = insertData[0].Panel;
+        const height = insertData[0].Height;
+        const width = insertData[0].Width;
+        const length = document.getElementById("length").value;
+        const qty = document.getElementById("returnQty").value;
+
+        sendingData.push({
+          id,
+          contractNumber,
+          returnType,
+          panelNumber,
+          description,
+          height,
+          width,
+          length,
+          qty,
+        });
+
+        fetch("/return/insertReturnTransaction", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sendingData }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((error) => {
+            console.error("Error inserting data:", error);
+          });
+
+        window.location.reload();
+      }
+
+      function populateData(data) {
+        document.getElementById("contractNumberLblInput").textContent =
+          data.ContractNumber;
+        document.getElementById("panelLblInput").textContent = data.Panel;
+        document.getElementById("descriptionLblInput").textContent =
+          data.Description;
+        document.getElementById("heightLblInput").textContent = data.Height;
+        document.getElementById("widthLblInput").textContent = data.Width;
+        document.getElementById("length").value = data.Length;
+      }
+
+      function handleSelectionChange(selectedValue) {
+        fetch(`/return/id/${selectedValue}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            populateData(data[0]);
+            insertData = [data[0]];
+            console.log(insertData);
+          })
+          .catch((error) => {
+            console.error("Error fetching purchases:", error);
+          });
+      }
+
+      document
+        .getElementById("idDropdown")
+        .addEventListener("change", function () {
+          const selectedValue = this.value;
+          handleSelectionChange(selectedValue);
+          this.disabled = true;
+        });
+
+      function showTable() {
+        document.getElementById("purchaseTable").style.display = "";
+      }
+
+      function clearTableWithMessage(message) {
+        showTable();
+        table.setData([
+          {
+            ID: "",
+            ContractNumber: "",
+            Panel: "",
+            Description: message,
+            Height: "",
+            Width: "",
+            LengthPerPiece: "",
+            Qty: "",
+            TotalOriginalLength: "",
+            TotalCorrectedLength: "",
+            DateOfTransaction: "",
+          },
+        ]);
+      }
+
+      function populateIdDropdown(purchases) {
+        const idDropdown = document.getElementById("idDropdown");
+
+        idDropdown.innerHTML = '<option disabled selected>Select ID</option>';
+        idDropdown.disabled = false;
+
+        purchases.forEach((purchase) => {
+          const option = document.createElement("option");
+          option.value = purchase.ID;
+          option.textContent = purchase.ID;
+          idDropdown.appendChild(option);
+        });
+      }
+
+      function buildReturnRows(purchases) {
+        return purchases.map((purchase) => {
+          return {
+            ID: purchase.ID,
+            ContractNumber: purchase.ContractNumber,
+            Panel: purchase.Panel,
+            Description: purchase.Description,
+            Height: purchase.Height,
+            Width: purchase.Width,
+            LengthPerPiece: purchase.LengthPerPiece,
+            Qty: purchase.Qty,
+            TotalOriginalLength: purchase.TotalOriginalLength,
+            TotalCorrectedLength: purchase.TotalCorrectedLength,
+            DateOfTransaction: purchase.DateOfTransaction,
+          };
+        });
+      }
+
+      function setTableData(rows) {
+        showTable();
+        table.setData(rows);
+      }
+
+      function handleSubmit(event) {
+        event.preventDefault();
+        insertData = [];
+
+        const selectedContractNumber = document.getElementById(
+          "contractNumberDropDown"
+        ).value;
+
+        fetch(`/return/transactions/${selectedContractNumber}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            populateIdDropdown(data);
+
+            if (!Array.isArray(data) || data.length === 0) {
+              clearTableWithMessage("No purchases found.");
+              return;
+            }
+
+            const rows = buildReturnRows(data);
+            setTableData(rows);
+          })
+          .catch((error) => {
+            console.error("Error fetching purchases:", error);
+          });
       }
 
       function refreshPage() {
