@@ -13,6 +13,7 @@ const issueRoutes = require("./routes/issueRoutes");
 const returnRoutes = require("./routes/returnRoutes");
 const countRoutes = require("./routes/countRoutes");
 const auditRoutes = require("./routes/auditRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 
 // Initialize express app
@@ -52,6 +53,7 @@ app.use("/issue", issueRoutes);
 app.use("/return", returnRoutes);
 app.use("/count", countRoutes);
 app.use("/audit", auditRoutes);
+app.use("/admin", adminRoutes);
 
 // Start the server
 app.listen(port,'0.0.0.0', () => {

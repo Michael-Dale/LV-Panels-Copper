@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/main.css" />
+    <title>Admin - Edit Data</title>
+    <style>
+      body { font-family: sans-serif; padding: 16px; }
+      .bar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+      .warn { background: #fff3cd; border: 1px solid #e0c36a; padding: 8px 12px; margin-bottom: 12px; }
+      .scroll { overflow: auto; max-height: 70vh; border: 1px solid #ccc; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ddd; padding: 3px 4px; white-space: nowrap; }
+      th { position: sticky; top: 0; background: #eee; z-index: 1; }
+      td input { width: 100%; min-width: 70px; box-sizing: border-box; }
+      td.ro { background: #f4f4f4; color: #555; }
+      tr.changed td { background: #fff8d6; }
+      tr.changed td.ro { background: #f1ecd0; }
+      button { cursor: pointer; padding: 4px 10px; }
+      button.del { background: #c0392b; color: #fff; border: 0; }
+      button.save { background: #2e7d32; color: #fff; border: 0; }
+      button:disabled { opacity: 0.4; cursor: default; }
+      #msg { font-weight: bold; }
+      #msg.err { color: #c0392b; }
+      #msg.ok { color: #2e7d32; }
+      #login { max-width: 320px; margin: 80px auto; }
+      #login input { width: 100%; padding: 6px; margin: 8px 0; box-sizing: border-box; }
+    </style>
+  </head>
+  <body>
+    <div id="login">
+      <h2>Admin login</h2>
+      <input type="password" id="pw" placeholder="Password" />
+      <button id="loginBtn">Log in</button>
+      <p id="loginMsg" class="err"></p>
+    </div>
+
+    <div id="app" style="display: none">
+      <h1>Edit Data</h1>
+      <div class="warn">
+        Changes here are saved straight to the database. A backup copy is made
+        automatically before every save or delete. Grey cells cannot be edited.
+      </div>
+      <div class="bar">
+        <label>Table:
+          <select id="tableSelect"></select>
+        </label>
+        <label>Search:
+          <input type="text" id="search" placeholder="Type to filter rows" />
+        </label>
+        <span id="count"></span>
+        <span id="msg"></span>
+        <button id="logout">Log out</button>
+      </div>
+      <div class="scroll"><table id="grid"></table></div>
+    </div>
+
+    <script>
+      let token = sessionStorage.getItem("adminToken");
+      let columns = [];
+      let rows = [];
+
+      const $ = (id) => document.getElementById(id);
+
+      function say(text, cls) {
+        $("msg").textContent = text;
+        $("msg").className = cls || "";
+      }
+
+      async function api(method, url, body) {
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json", "x-admin-token": token || "" },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) { logout(); throw new Error("Please log in again"); }
+        if (!res.ok) throw new Error(data.error || "Request failed");
+        return data;
+      }
+
+      function logout() {
+        sessionStorage.removeItem("adminToken");
+        token = null;
+        $("app").style.display = "none";
+        $("login").style.display = "block";
+      }
+
+      async function login() {
+        $("loginMsg").textContent = "";
+        try {
+          const res = await fetch("/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: $("pw").value }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          token = data.token;
+          sessionStorage.setItem("adminToken", token);
+          $("pw").value = "";
+          start();
+        } catch (e) {
+          $("loginMsg").textContent = e.message;
+        }
+      }
+
+      async function start() {
+        try {
+          const tables = await api("GET", "/admin/api/tables");
+          $("login").style.display = "none";
+          $("app").style.display = "block";
+          $("tableSelect").innerHTML = tables.map((t) => `<option>${t}</option>`).join("");
+          loadTable();
+        } catch (e) {
+          logout();
+        }
+      }
+
+      async function loadTable() {
+        say("Loading...");
+        try {
+          const data = await api("GET", "/admin/api/" + $("tableSelect").value);
+          columns = data.columns;
+          rows = data.rows;
+          render();
+          say("");
+        } catch (e) {
+          say(e.message, "err");
+        }
+      }
+
+      function render() {
+        const grid = $("grid");
+        grid.innerHTML = "";
+        const head = grid.createTHead().insertRow();
+        head.insertCell(); // actions column
+        columns.forEach((c) => {
+          const th = document.createElement("th");
+          th.textContent = c.name;
+          head.appendChild(th);
+        });
+        head.firstChild.outerHTML = "<th>Actions</th>";
+
+        const body = grid.createTBody();
+        rows.forEach((row) => {
+          const tr = body.insertRow();
+          tr.dataset.id = row.ID;
+          tr.dataset.text = Object.values(row).join(" ").toLowerCase();
+
+          const actions = tr.insertCell();
+          const save = document.createElement("button");
+          save.textContent = "Save";
+          save.className = "save";
+          save.disabled = true;
+          const del = document.createElement("button");
+          del.textContent = "Delete";
+          del.className = "del";
+          actions.append(save, " ", del);
+
+          columns.forEach((c) => {
+            const td = tr.insertCell();
+            if (c.readOnly) {
+              td.className = "ro";
+              td.textContent = row[c.name] ?? "";
+            } else {
+              const input = document.createElement("input");
+              input.value = row[c.name] ?? "";
+              input.dataset.col = c.name;
+              input.dataset.orig = input.value;
+              input.addEventListener("input", () => {
+                const changed = [...tr.querySelectorAll("input")].some((i) => i.value !== i.dataset.orig);
+                tr.classList.toggle("changed", changed);
+                save.disabled = !changed;
+              });
+              td.appendChild(input);
+            }
+          });
+
+          save.addEventListener("click", () => saveRow(tr, row));
+          del.addEventListener("click", () => deleteRow(row));
+        });
+        applyFilter();
+      }
+
+      function applyFilter() {
+        const q = $("search").value.toLowerCase();
+        let shown = 0;
+        document.querySelectorAll("#grid tbody tr").forEach((tr) => {
+          const match = tr.dataset.text.includes(q);
+          tr.style.display = match ? "" : "none";
+          if (match) shown++;
+        });
+        $("count").textContent = `${shown} of ${rows.length} rows`;
+      }
+
+      async function saveRow(tr, row) {
+        const values = {};
+        tr.querySelectorAll("input").forEach((i) => (values[i.dataset.col] = i.value));
+        if (!confirm(`Save changes to row ${row.ID} in ${$("tableSelect").value}?`)) return;
+        try {
+          await api("PUT", `/admin/api/${$("tableSelect").value}/${row.ID}`, values);
+          say(`Row ${row.ID} saved`, "ok");
+          const keep = $("search").value;
+          await loadTable();
+          $("search").value = keep;
+          applyFilter();
+          say(`Row ${row.ID} saved`, "ok");
+        } catch (e) {
+          say(e.message, "err");
+        }
+      }
+
+      async function deleteRow(row) {
+        const summary = columns.map((c) => `${c.name}: ${row[c.name] ?? ""}`).join("\n");
+        if (!confirm(`DELETE this row from ${$("tableSelect").value}?\n\n${summary}`)) return;
+        try {
+          await api("DELETE", `/admin/api/${$("tableSelect").value}/${row.ID}`);
+          const keep = $("search").value;
+          await loadTable();
+          $("search").value = keep;
+          applyFilter();
+          say(`Row ${row.ID} deleted`, "ok");
+        } catch (e) {
+          say(e.message, "err");
+        }
+      }
+
+      $("loginBtn").addEventListener("click", login);
+      $("pw").addEventListener("keydown", (e) => e.key === "Enter" && login());
+      $("logout").addEventListener("click", logout);
+      $("tableSelect").addEventListener("change", () => { $("search").value = ""; loadTable(); });
+      $("search").addEventListener("input", applyFilter);
+
+      if (token) start();
+    </script>
+  </body>
+</html>
